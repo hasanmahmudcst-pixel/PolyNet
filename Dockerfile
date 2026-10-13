@@ -1,19 +1,4 @@
 # PolyNet Production Backend Dockerfile
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Install build dependencies
-COPY package*.json ./
-RUN npm ci
-
-# Copy source tree
-COPY . .
-
-# Build bundle (Vite SPA + esbuild dist/server.cjs)
-RUN npm run build
-
-# Production runtime stage
 FROM node:20-alpine AS runner
 
 WORKDIR /app
@@ -21,12 +6,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# শুধু প্রোডাকশন ডিপেন্ডেন্সি ইনস্টল করা
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Copy built distribution files and public assets
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/public ./public
+# আপনার আপলোড করা রেডি dist এবং public ফোল্ডার সরাসরি কপি করা
+COPY dist ./dist
+COPY public ./public
 COPY firebase-applet-config.json ./
 
 EXPOSE 3000
