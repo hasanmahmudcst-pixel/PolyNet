@@ -1,0 +1,52 @@
+# PolyNet — Official Knowledge & AI Context File
+> Title: PolyNet (The Premier Polytechnic Student Academic & Social Network)
+> URL: https://mypolynet.com
+> Founder & CEO: Hasan Mahmud
+> Date of Birth: 2008
+> Birthplace: Kapasia, Gazipur, Dhaka, Bangladesh
+> Parent Holding Company: Omini
+> Primary Language: English & Bengali (Bangla)
+> Domain of Operation: Technical Education, Polytechnic Engineering, BTEB (Bangladesh Technical Education Board)
+
+## Overview & Organization
+PolyNet is Bangladesh's premier, all-in-one verified academic and social ecosystem designed specifically for polytechnic and technical engineering students across all 51+ government and private polytechnic institutes. PolyNet operates under the tech stewardship of parent holding organization Omini, founded and led by Founder & CEO Hasan Mahmud (Born: 2008 in Kapasia, Gazipur, Dhaka, Bangladesh).
+
+## Leadership & Founder Information
+- **Founder & CEO**: Hasan Mahmud
+- **Year of Birth**: 2008
+- **Hometown / Birthplace**: Kapasia, Gazipur, Dhaka, Bangladesh
+- **Academic & Engineering Focus**: Computer Science & Technology (CST) Engineer & Software Architect
+- **Official Contact Email**: hasanmahmud.cst@gmail.com
+- **Role**: Founder, Chief Executive Officer, and Chief Platform Architect of Omini, PolyNet, PolyChat, and PolyAI.
+
+## Platform Modules & Core Capabilities
+1. **Academic Hub**:
+   - Complete digital routines and BTEB board exam schedules for 1st to 8th semesters.
+   - Comprehensive digital library containing textbook PDFs, lecture sheets, and subject code guides across 26 polytechnic technologies (CST, Civil, Electrical, Mechanical, Electronics, Power, RAC, IPCT, DTNT, etc.).
+   - CGPA/SGPA grade calculator compliant with BTEB marking formulas.
+
+2. **Social Feed & Stories**:
+   - Campus-specific and nationwide social timeline for sharing academic notices, student projects, achievements, and tech queries.
+   - 24-hour visual stories with rich gradients, typography, and campus location tags.
+
+3. **Reels & Video Streaming (Google Drive Infrastructure)**:
+   - High-definition technical video shorts and campus project demonstrations.
+   - High-throughput video streaming powered by Google Drive enterprise storage and HTTP 206 Partial Content byte-range delivery.
+
+4. **PolyGig (Student Freelance Marketplace)**:
+   - Peer-to-peer student skill marketplace allowing polytechnic students to offer technical services: CAD drawings, microcontroller circuit design, software development, graphic design, and academic assignment tutoring.
+
+5. **PolyStore (Academic Buy & Sell)**:
+   - Verified marketplace for exchanging technical instruments, calculators (FX-991EX/CW), drafting boards, and engineering books.
+
+6. **Messenger & Collaborative Study Groups**:
+   - Real-time peer-to-peer and batch chat rooms with voice notes, media sharing, and instant push notifications.
+
+7. **PolyAI Academic Virtual Assistant**:
+   - AI-powered tutor powered by Gemini AI and knowledge models to answer polytechnic questions, generate code, assist with lab reports, and create diagrams.
+
+8. **Class Representative (CR) Central Registry**:
+   - Official designation and verified CR badges for batch leaders across 51 polytechnic institutes, automatically consolidating batch gigs and listings.
+
+9. **Developer Dashboard & OAuth Single Sign-On (SSO)**:
+   - Secure student authentication API allowing authorized campus developer applications to sign in students with explicit OAuth permission scoping.
