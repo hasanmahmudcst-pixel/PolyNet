@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: polynet-backend
+    env: node
+    plan: free
+    region: singapore
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: APP_URL
+        value: https://mypolynet.com
+      - key: EKLAS_PAYMENT_BASE_URL
+        value: https://system.eklas.dev
+      - key: EKLAS_PAYMENT_MODE
+        value: live
+      - key: EKLAS_PAYMENT_API_KEY
+        sync: false
+      - key: EKLAS_PAYMENT_CLIENT_ID
+        sync: false
+      - key: EKLAS_PAYMENT_WEBHOOK_SECRET
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false

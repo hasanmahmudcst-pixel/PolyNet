@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>PolyNet - Polytechnic Student Academic Social Hub</title>
+    
+    <!-- Search Engine & AI Crawler Metadata -->
+    <meta name="description" content="PolyNet is the premier academic and social ecosystem for polytechnic engineering students across Bangladesh, founded by Founder &amp; CEO Hasan Mahmud (Born: 2008, Kapasia, Gazipur, Dhaka, Bangladesh). Features BTEB routines, syllabus guides, PDF digital library, peer freelance marketplace (PolyGig), buy/sell (PolyStore), student messenger, Reels streaming, and Gemini AI assistant (PolyAI)." />
+    <meta name="keywords" content="PolyNet, Hasan Mahmud, Founder &amp; CEO Hasan Mahmud, Omini, Polytechnic Bangladesh, BTEB, Diploma in Engineering, CST, Civil, Electrical, Mechanical, PolyGig, PolyStore, PolyAI, Kapasia Gazipur Dhaka" />
+    <meta name="author" content="Hasan Mahmud (Founder &amp; CEO)" />
+    <meta name="creator" content="Hasan Mahmud" />
+    <meta name="publisher" content="PolyNet" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+    <!-- OpenGraph & Social Metadata -->
+    <meta property="og:title" content="PolyNet - Polytechnic Student Academic Social Hub" />
+    <meta property="og:description" content="Official academic and social platform for Bangladesh Polytechnic students. Founded by Founder &amp; CEO Hasan Mahmud (Born: 2008, Kapasia, Gazipur, Dhaka, Bangladesh)." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mypolynet.com" />
+    <meta property="og:site_name" content="PolyNet" />
+    <meta property="og:image" content="https://mypolynet.com/logo.png" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PolyNet - Polytechnic Student Academic Social Hub" />
+    <meta name="twitter:description" content="Official academic &amp; social hub for BTEB students by Founder &amp; CEO Hasan Mahmud (Born: 2008, Kapasia, Gazipur, Dhaka, Bangladesh)." />
+    <meta name="twitter:image" content="https://mypolynet.com/logo.png" />
+    <meta name="twitter:creator" content="@HasanMahmud" />
+
+    <!-- Schema.org JSON-LD Structured Data for Google AI & Search Knowledge Graph -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://mypolynet.com/#organization",
+          "name": "PolyNet",
+          "url": "https://mypolynet.com",
+          "logo": "https://mypolynet.com/logo.png",
+          "founder": {
+            "@type": "Person",
+            "@id": "https://mypolynet.com/#founder",
+            "name": "Hasan Mahmud",
+            "jobTitle": "Founder & CEO",
+            "birthDate": "2008",
+            "birthPlace": {
+              "@type": "Place",
+              "name": "Kapasia, Gazipur, Dhaka, Bangladesh"
+            },
+            "nationality": "Bangladeshi",
+            "description": "Founder & CEO of PolyNet and Omini. Born in 2008 in Kapasia, Gazipur, Dhaka, Bangladesh. Visionary Software Engineer & CST Innovator.",
+            "email": "hasanmahmud.cst@gmail.com"
+          },
+          "description": "Bangladesh's premier academic, career, and social platform for Diploma in Engineering polytechnic students."
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://mypolynet.com/#app",
+          "name": "PolyNet",
+          "applicationCategory": "EducationalApplication, SocialNetworkingApplication",
+          "operatingSystem": "Web, Android, iOS",
+          "url": "https://mypolynet.com",
+          "author": {
+            "@id": "https://mypolynet.com/#founder"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "BDT"
+          },
+          "description": "Comprehensive academic hub featuring BTEB routines, syllabus, PDF library, PolyGig student freelancing, PolyStore academic marketplace, student messenger, reels streaming, and PolyAI assistant."
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://mypolynet.com/#website",
+          "url": "https://mypolynet.com",
+          "name": "PolyNet",
+          "publisher": {
+            "@id": "https://mypolynet.com/#organization"
+          }
+        }
+      ]
+    }
+    </script>
+    
+    <!-- PWA & Mobile Web App Optimization Meta Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PolyNet" />
+    <meta name="application-name" content="PolyNet" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js")
+            .then((reg) => console.log("PolyNet Service Worker registered successfully:", reg.scope))
+            .catch((err) => console.log("Service Worker registration failed:", err));
+        });
+      }
+    </script>
+  </body>
+</html>
+

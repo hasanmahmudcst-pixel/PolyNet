@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "80742709078",
+    "firebase_url": "https://hn-vendor-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "hn-vendor",
+    "storage_bucket": "hn-vendor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:80742709078:android:e30375f9ad745e4daf88f7",
+        "android_client_info": {
+          "package_name": "com.polynet.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWd0K75ObGiYOnnESGe5ip1cMTdhgl7qY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

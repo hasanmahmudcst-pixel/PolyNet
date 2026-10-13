@@ -1,0 +1,14 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+google-oauth-client.json
+google-drive-token.json
+firebase-service-account.json
+service-account*.json
+*.key
+*.pem

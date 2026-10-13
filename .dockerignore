@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+.env
+.env.*
+*.zip
+test
+android
+ios
+dist
+*.log
+firebase-service-account.json
+google-drive-service-account.json
+google-services.json

@@ -1,0 +1,619 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is Super Admin
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.role != null && request.auth.token.role == "super_admin") ||
+        (request.auth.token.email != null && (
+          request.auth.token.email.matches("(?i)22222@gmail\\.com") ||
+          request.auth.token.email.matches("(?i)hasanmahmud\\.cst@gmail\\.com") ||
+          request.auth.token.email.matches("(?i)hdd@gmail\\.com")
+        )) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true)
+      );
+    }
+
+    // Helper function to check if user is Secondary Admin (PolyGig & PolyStore operations)
+    function isStoreGigAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.role != null && request.auth.token.role == "store_gig_admin") ||
+        (request.auth.token.email != null && 
+          request.auth.token.email.matches("(?i)polygig\\.store\\.polynet@gmail\\.com")) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isStoreGigAdmin == true)
+      );
+    }
+
+    // Helper function to check if user has any administrative authorization
+    function isAnyAdmin() {
+      return isSuperAdmin() || isStoreGigAdmin();
+    }
+
+    // Legacy alias pointing to Super Admin
+    function isAdmin() {
+      return isSuperAdmin();
+    }
+
+    // Connection test route
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Users Profile Collection
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.auth.uid == userId && (
+        isSuperAdmin() ||
+        !request.resource.data.keys().hasAny([
+          'isAdmin', 'isSuperAdmin', 'isStoreGigAdmin', 
+          'isCr', 'crRole', 'isModerator', 'moderatorPolytechnic', 
+          'isGoldMember', 'isGoldApprovedByAdmin', 'specialRank',
+          'balance', 'walletBalance', 'isSecured', 'securityFromDate', 'securityToDate',
+          'boostFromDate', 'boostToDate'
+        ])
+      );
+      allow update: if isSignedIn() && (
+        isSuperAdmin() ||
+        (request.auth.uid == userId && 
+         (resource == null ? 
+          (!request.resource.data.keys().hasAny([
+            'isAdmin', 'isSuperAdmin', 'isStoreGigAdmin', 
+            'isCr', 'crRole', 'isModerator', 'moderatorPolytechnic', 
+            'isGoldMember', 'isGoldApprovedByAdmin', 'specialRank',
+            'balance', 'walletBalance', 'isSecured', 'securityFromDate', 'securityToDate',
+            'boostFromDate', 'boostToDate'
+          ]) && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false)) :
+          (!request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'isAdmin', 'isSuperAdmin', 'isStoreGigAdmin', 
+            'isCr', 'crRole', 'isModerator', 'moderatorPolytechnic', 
+            'isGoldMember', 'isGoldApprovedByAdmin', 'specialRank',
+            'balance', 'walletBalance', 'isSecured', 'securityFromDate', 'securityToDate',
+            'boostFromDate', 'boostToDate'
+          ]))
+         )
+        )
+      );
+      allow delete: if isSuperAdmin();
+
+      // Multi-device FCM registration subcollection
+      match /devices/{deviceId} {
+        allow read, write: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
+      }
+    }
+
+    // Secret User Private Recovery Credentials (SERVER / ADMIN SDK ONLY - ZERO CLIENT ACCESS)
+    match /user_private_credentials/{userId} {
+      allow read, write: if false;
+    }
+
+    // Dedicated Server-Only Admin Authentication Accounts (SERVER / ADMIN SDK ONLY - ZERO CLIENT ACCESS)
+    match /admin_auth_accounts/{adminId} {
+      allow read, write: if false;
+    }
+
+    // Student Account Recovery Requests (Public submission, Admin-only review)
+    match /account_recovery_requests/{requestId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Unique Usernames Index (doc ID is the lowercase username ensuring global 1-to-1 uniqueness)
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        (resource != null && resource.data.uid == request.auth.uid) ||
+        resource == null
+      );
+    }
+
+    // Social Feed Posts
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        request.auth.uid == resource.data.authorId ||
+        request.auth.uid == resource.data.userId ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentsCount', 'sharesCount', 'shares', 'reactions', 'reactionCounts', 'reactionsDetail', 'views', 'viewsCount', 'viewedBy', 'reportCount', 'bookmarkedBy'])
+      );
+      allow delete: if isSignedIn() && (
+        isAdmin() ||
+        request.auth.uid == resource.data.authorId ||
+        request.auth.uid == resource.data.userId
+      );
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update: if isSignedIn() && (
+          isAdmin() ||
+          request.auth.uid == resource.data.authorId ||
+          request.auth.uid == resource.data.userId ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'reactions', 'replyCount'])
+        );
+        allow delete: if isSignedIn() && (
+          isAdmin() ||
+          request.auth.uid == resource.data.authorId ||
+          request.auth.uid == resource.data.userId
+        );
+      }
+
+      // Likes subcollection
+      match /likes/{likeId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+
+      // Media chunks subcollection for large uploads
+      match /mediaChunks/{chunkId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+
+    // Real-time Chat Threads & Subcollections
+    match /chats/{chatId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+
+      match /messages/{messageId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+
+    // Direct messages
+    match /messages/{messageId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Study & Community Groups
+    match /groups/{groupId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+
+      match /messages/{messageId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+
+    // Real-time Push Notifications Pipeline (both top-level and user subcollections)
+    match /notifications/{notifId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /notifications/{userId}/userNotifications/{notificationId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Moderation Reports
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow write: if isSignedIn();
+    }
+
+    // Fast Search Cache
+    match /search_cache/{cacheId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // App Global Settings
+    match /app_settings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // App Config
+    match /app_config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Admin Master Auth Configuration
+    match /admin_auth/{configId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Voice and Video calls signaling
+    match /calls/{callId} {
+      allow read, write: if isSignedIn();
+
+      match /{allSubcollections=**} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // Educational PDF Resources
+    match /pdf_resources/{resourceId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Job Circular Alerts
+    match /job_alerts/{jobId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Class Routines And Syllabi
+    match /routines/{routineId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Book/Note Market Buy Sell Items
+    match /buy_sell_items/{itemId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        request.auth.uid == resource.data.sellerUid ||
+        request.auth.uid == resource.data.userId
+      );
+    }
+
+    // Stories posts
+    match /stories/{storyId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        request.auth.uid == resource.data.authorId ||
+        request.auth.uid == resource.data.userId
+      );
+    }
+
+    // Friend Requests Collection
+    match /friend_requests/{requestId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        request.auth.uid == resource.data.senderId ||
+        request.auth.uid == resource.data.receiverId
+      );
+    }
+
+    // Saved Friends
+    match /saved_friends/{friendId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Polytechnic branches
+    match /branches/{branchId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // General Application Feedbacks
+    match /app_feedbacks/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Direct Feedback & Bug Reports
+    match /feedbacks/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Business Pages (Facebook / Instagram Page style multi-profile system)
+    match /business_pages/{pageId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isSignedIn() && (
+        isAdmin() || 
+        resource.data.ownerUid == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviews', 'rating', 'totalReviews'])
+      );
+      allow delete: if isSignedIn() && (isAdmin() || resource.data.ownerUid == request.auth.uid);
+
+      match /products/{productId} {
+        allow read: if true;
+        allow write: if isSignedIn() && (isAdmin() || get(/databases/$(database)/documents/business_pages/$(pageId)).data.ownerUid == request.auth.uid);
+      }
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && (isAdmin() || resource.data.authorUid == request.auth.uid);
+      }
+    }
+
+    // Short Reels
+    match /reels/{reelId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        request.auth.uid == resource.data.authorId ||
+        request.auth.uid == resource.data.userId ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentsCount', 'shares', 'views'])
+      );
+      allow delete: if isSignedIn() && (
+        isAdmin() ||
+        request.auth.uid == resource.data.authorId ||
+        request.auth.uid == resource.data.userId
+      );
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && (
+          isAdmin() ||
+          request.auth.uid == resource.data.authorId ||
+          request.auth.uid == resource.data.userId
+        );
+      }
+    }
+
+    // PolyGig Freelancing Items & Gigs
+    match /polygig_items/{gigId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.authorId ||
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.sellerUid
+      );
+      allow delete: if isSignedIn() && (
+        isSuperAdmin() ||
+        request.auth.uid == resource.data.authorId ||
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.sellerUid
+      );
+    }
+
+    // PolyGig Orders - Strict authorization, immutable financials
+    match /polygig_orders/{orderId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.buyerUid ||
+        request.auth.uid == resource.data.buyerId ||
+        request.auth.uid == resource.data.sellerUid ||
+        request.auth.uid == resource.data.sellerId ||
+        request.auth.uid == resource.data.userId
+      );
+
+      // Create order: Only involved buyer or seller, cannot forge payment status or balances
+      allow create: if isSignedIn() && (
+        request.auth.uid == request.resource.data.buyerUid ||
+        request.auth.uid == request.resource.data.buyerId ||
+        request.auth.uid == request.resource.data.sellerUid ||
+        request.auth.uid == request.resource.data.sellerId ||
+        request.auth.uid == request.resource.data.userId
+      ) && (
+        !('paymentStatus' in request.resource.data) || 
+        request.resource.data.paymentStatus == 'unpaid' || 
+        request.resource.data.paymentStatus == 'pending'
+      ) && (
+        !('settled' in request.resource.data) || 
+        request.resource.data.settled == false
+      ) && (
+        !('isPaid' in request.resource.data) || 
+        request.resource.data.isPaid == false
+      ) && (
+        !('status' in request.resource.data) ||
+        request.resource.data.status in ['pending', 'pending_acceptance', 'created', 'unpaid']
+      );
+
+      // Update: Admins can update. Buyer & Seller can only update non-financial operational fields
+      allow update: if isSignedIn() && (
+        isAnyAdmin() || (
+          (request.auth.uid == resource.data.buyerUid ||
+           request.auth.uid == resource.data.buyerId ||
+           request.auth.uid == resource.data.sellerUid ||
+           request.auth.uid == resource.data.sellerId ||
+           request.auth.uid == resource.data.userId) &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'paymentStatus', 'paidAmount', 'settled', 'commissionAllocations',
+            'isPaid', 'transactionId', 'sellerPayoutStatus', 'platformFee',
+            'crCommission', 'moderatorCommission', 'deletedAt', 'isDeleted'
+          ]) && (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) ||
+            request.resource.data.status != 'completed' ||
+            (resource.data.paymentStatus == 'paid' || (('isPaid' in resource.data) && resource.data.isPaid == true))
+          )
+        )
+      );
+
+      // Hard deletion is restricted to Super Admin only
+      allow delete: if isSuperAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (
+          isAnyAdmin() ||
+          request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.buyerUid ||
+          request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.buyerId ||
+          request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.sellerUid ||
+          request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.sellerId
+        );
+        allow create: if isSignedIn() && 
+          request.auth.uid == request.resource.data.senderId && (
+            isAnyAdmin() ||
+            request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.buyerUid ||
+            request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.buyerId ||
+            request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.sellerUid ||
+            request.auth.uid == get(/databases/$(database)/documents/polygig_orders/$(orderId)).data.sellerId
+          );
+        allow update, delete: if isSuperAdmin();
+      }
+    }
+
+    // PolyGig Order Messages
+    match /polygig_messages/{msgId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.senderId ||
+        request.auth.uid == resource.data.receiverId
+      );
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId;
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // PolyGig Proposals
+    match /polygig_proposals/{propId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.freelancerId ||
+        request.auth.uid == resource.data.sellerUid ||
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.buyerUid
+      );
+      allow create: if isSignedIn() && (
+        request.auth.uid == request.resource.data.freelancerId ||
+        request.auth.uid == request.resource.data.sellerUid ||
+        request.auth.uid == request.resource.data.userId
+      );
+      allow update: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.freelancerId ||
+        request.auth.uid == resource.data.sellerUid ||
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.buyerUid
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // Gold Member Requests
+    match /gold_requests/{reqId} {
+      allow read: if isSignedIn() && (isAnyAdmin() || request.auth.uid == resource.data.userUid);
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userUid;
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // OAuth Registered Apps
+    match /oauth_apps/{appId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (
+        isSuperAdmin() ||
+        request.auth.uid == resource.data.developerId ||
+        request.auth.uid == resource.data.userId
+      );
+    }
+
+    // User Typing States (Messenger & Connect)
+    match /typing_states/{stateId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // User Profiles & Academic Hub Wallets
+    match /user_profiles/{profileId} {
+      allow read: if true;
+      allow create: if isSignedIn() && (
+        isSuperAdmin() ||
+        (request.auth.uid == profileId && !request.resource.data.keys().hasAny(['walletBalance', 'balance']))
+      );
+      allow update: if isSignedIn() && (
+        isSuperAdmin() ||
+        (request.auth.uid == profileId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['walletBalance', 'balance']))
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // Educational Purchases & Withdrawals
+    match /note_purchases/{purchaseId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.buyerUid ||
+        request.auth.uid == resource.data.sellerUid
+      );
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.buyerUid;
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // Withdrawals (Fixed field mapping: supports both userId and userUid)
+    match /withdrawals/{withdrawalId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.userUid
+      );
+      allow create: if isSignedIn() && (
+        (!('userId' in request.resource.data) || request.auth.uid == request.resource.data.userId) &&
+        (!('userUid' in request.resource.data) || request.auth.uid == request.resource.data.userUid) &&
+        (('userId' in request.resource.data) || ('userUid' in request.resource.data))
+      ) && (
+        !('status' in request.resource.data) ||
+        request.resource.data.status == 'pending'
+      );
+      allow update: if isAnyAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // Protected Financial Ledger & Transactions (Admin SDK only for writes)
+    match /payment_transactions/{txId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.buyerUid ||
+        request.auth.uid == resource.data.sellerUid
+      );
+      allow write: if false;
+    }
+
+    match /wallets/{walletId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == walletId ||
+        request.auth.uid == resource.data.userId
+      );
+      allow write: if false;
+    }
+
+    match /ledger_entries/{entryId} {
+      allow read: if isSignedIn() && (
+        isAnyAdmin() ||
+        request.auth.uid == resource.data.accountUid
+      );
+      allow write: if false;
+    }
+
+    // Immutable Admin Audit Logs (Write once by admin, Read only by Super Admin)
+    match /admin_audit_logs/{logId} {
+      allow read: if isSuperAdmin();
+      allow create: if isAnyAdmin() && request.auth.uid == request.resource.data.actorUid;
+      allow update, delete: if false;
+    }
+
+    // PolyLoop User Activities Analytics Log
+    match /user_activities/{activityId} {
+      allow read: if isAnyAdmin();
+      allow write: if isSignedIn();
+    }
+
+    // Admin Aggregated Statistics
+    match /admin_stats/{statDate} {
+      allow read: if isAnyAdmin();
+      allow write: if isAnyAdmin();
+    }
+
+    // System Settings & OAuth Tokens (Server-only credentials, strictly forbidden for client access)
+    match /system_settings/{settingId} {
+      allow read, write: if false;
+    }
+
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "projectId": "hn-vendor",
+  "appId": "1:80742709078:web:e57290c4e96b9f74af88f7",
+  "apiKey": "AIzaSyDJfmB5ZRNq_HOSuisvKLDJR978L4jVp2I",
+  "authDomain": "hn-vendor.firebaseapp.com",
+  "databaseURL": "https://hn-vendor-default-rtdb.asia-southeast1.firebasedatabase.app",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "hn-vendor.firebasestorage.app",
+  "messagingSenderId": "80742709078",
+  "measurementId": "G-CSFV4PKQ2N"
+}

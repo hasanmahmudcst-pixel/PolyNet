@@ -1,0 +1,455 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Polytechnic Student User Profile data synced or created for social interaction.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique user id matching Firebase Auth UID." },
+        "displayName": { "type": "string", "description": "Full display name of the student." },
+        "email": { "type": "string", "description": "Valid email address of the student." },
+        "avatar": { "type": "string", "description": "Base64 or URL of user profile picture." },
+        "coverPhoto": { "type": "string", "description": "Base64 or URL of cover banner image." },
+        "technology": { "type": "string", "description": "Student's department e.g. CST, Civil, Electrical." },
+        "semester": { "type": "string", "description": "Current semester 1st to 8th." },
+        "polytechnic": { "type": "string", "description": "Name of the Polytechnic Institute." },
+        "bio": { "type": "string", "description": "Short bio or tagline." },
+        "verified": { "type": "boolean", "description": "Whether the user account is verified." },
+        "followerCount": { "type": "number", "description": "Total followers count." },
+        "followingCount": { "type": "number", "description": "Total following count." },
+        "postCount": { "type": "number", "description": "Total post creation count." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account registration timestamp." },
+        "lastSeen": { "type": "string", "format": "date-time", "description": "Last active timestamp." },
+        "fcmToken": { "type": "string", "description": "Firebase Cloud Messaging registration token for push notifications." },
+        "fcmPlatform": { "type": "string", "description": "Device platform e.g. android or web." },
+        "fcmUpdatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when FCM token was last updated." }
+      },
+      "required": ["uid", "displayName", "createdAt"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Feed post created by students, supporting text, image, video, poll, and PDF resources.",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "text": { "type": "string" },
+        "imageUrls": { "type": "array", "description": "List of attached image URLs." },
+        "category": { "type": "string", "description": "Category e.g. general, qa, notes, job." },
+        "visibility": { "type": "string", "description": "Public, friends, or group." },
+        "likeCount": { "type": "number" },
+        "commentCount": { "type": "number" },
+        "shareCount": { "type": "number" },
+        "poll": { "type": "object", "description": "Interactive poll metadata." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "authorId", "authorName", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Comments on dynamic feed posts.",
+      "type": "object",
+      "properties": {
+        "commentId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["commentId", "authorId", "authorName", "text", "createdAt"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "Post like entry.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "likedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "likedAt"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "Private or group chat session metadata.",
+      "type": "object",
+      "properties": {
+        "chatId": { "type": "string" },
+        "members": { "type": "array", "description": "List of user UIDs in this conversation." },
+        "type": { "type": "string", "enum": ["private", "group"] },
+        "lastMessage": { "type": "string" },
+        "lastSender": { "type": "string" },
+        "lastMessageTime": { "type": "string", "format": "date-time" },
+        "unreadCount": { "type": "number" }
+      },
+      "required": ["chatId", "members", "type"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Individual message entry inside a chat conversation with support for files, pinning, forwarding, and auto-disappearing messages.",
+      "type": "object",
+      "properties": {
+        "messageId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "image", "file", "poll"] },
+        "text": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "fileUrl": { "type": "string", "description": "Persistent document download URL (PDF, DOC, ZIP)" },
+        "fileName": { "type": "string", "description": "Original file name" },
+        "fileSize": { "type": "string", "description": "Human-readable file size" },
+        "fileType": { "type": "string", "description": "MIME type of document" },
+        "isPinned": { "type": "boolean", "description": "Whether message is pinned to top of conversation" },
+        "pinnedAt": { "type": "string", "format": "date-time" },
+        "pinnedBy": { "type": "string", "description": "UID of user who pinned the message" },
+        "isForwarded": { "type": "boolean", "description": "Whether message was forwarded from another chat" },
+        "forwardedFrom": { "type": "string", "description": "Original sender display name" },
+        "expiresAt": { "type": "string", "description": "ISO timestamp when message automatically vanishes" },
+        "disappearingDuration": { "type": "string", "description": "Configured timer duration (e.g. 24h, 7d, 30d)" },
+        "replyTo": { "type": "string" },
+        "seenBy": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["messageId", "senderId", "type", "createdAt"]
+    },
+    "Group": {
+      "title": "Group",
+      "description": "Study groups or project collaboration groups.",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "coverPhoto": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "memberCount": { "type": "number" },
+        "lastMessage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["groupId", "name", "ownerId", "createdAt"]
+    },
+    "GroupMessage": {
+      "title": "GroupMessage",
+      "description": "Message entry inside study group chat.",
+      "type": "object",
+      "properties": {
+        "messageId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["messageId", "senderId", "createdAt"]
+    },
+    "UserNotification": {
+      "title": "UserNotification",
+      "description": "Real-time targeted push notification document.",
+      "type": "object",
+      "properties": {
+        "notificationId": { "type": "string" },
+        "recipientUserId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "actorUserId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "actorName": { "type": "string" },
+        "senderName": { "type": "string" },
+        "actorAvatar": { "type": "string" },
+        "senderAvatar": { "type": "string" },
+        "type": { "type": "string" },
+        "entityId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "message": { "type": "string" },
+        "deepLink": { "type": "string" },
+        "url": { "type": "string" },
+        "metadata": { "type": "object" },
+        "read": { "type": "boolean" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "title", "body", "createdAt"]
+    },
+    "UserDevice": {
+      "title": "UserDevice",
+      "description": "FCM device registration record for multi-device push notification delivery.",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string" },
+        "userId": { "type": "string" },
+        "fcmToken": { "type": "string" },
+        "platform": { "type": "string", "enum": ["android", "ios", "web"] },
+        "deviceModel": { "type": "string" },
+        "osVersion": { "type": "string" },
+        "appVersion": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "notificationSettings": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastActiveAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["deviceId", "userId", "fcmToken", "platform", "createdAt"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "Report content entry for post/user/group moderation.",
+      "type": "object",
+      "properties": {
+        "reportId": { "type": "string" },
+        "targetType": { "type": "string" },
+        "targetId": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reportId", "targetType", "targetId", "reporterId", "reason", "createdAt"]
+    },
+    "SearchCache": {
+      "title": "SearchCache",
+      "description": "Indexed search optimization documents.",
+      "type": "object",
+      "properties": {
+        "users": { "type": "array" },
+        "posts": { "type": "array" },
+        "groups": { "type": "array" }
+      }
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "Global application configuration & app version flags.",
+      "type": "object",
+      "properties": {
+        "maintenance": { "type": "boolean" },
+        "latestVersion": { "type": "string" },
+        "forceUpdate": { "type": "boolean" }
+      }
+    },
+    "PDFResource": {
+      "title": "PDFResource",
+      "description": "PDF Resource library entry for books, tutorial files, sheet downloads.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "uploadedById": { "type": "string" },
+        "uploadedByName": { "type": "string" },
+        "semester": { "type": "string" },
+        "technology": { "type": "string" },
+        "docType": { "type": "string", "enum": ["book", "tutorial", "sheet"] },
+        "fileData": { "type": "string" },
+        "fileName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "JobAlert": {
+      "title": "JobAlert",
+      "description": "Job posting or internship opportunity notification.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "company": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "RoutineAndSyllabus": {
+      "title": "RoutineAndSyllabus",
+      "description": "Routine schedules and syllabus specifications.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "BuySellItem": {
+      "title": "BuySellItem",
+      "description": "Student book and note marketplace item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "price": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Story": {
+      "title": "Story",
+      "description": "Short-lived visual story slide.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Reel": {
+      "title": "Reel",
+      "description": "Short video reels.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "UserActivity": {
+      "title": "UserActivity",
+      "description": "User behavioral events for PolyLoop algorithm & analytics.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "eventName": { "type": "string" },
+        "category": { "type": "string" },
+        "department": { "type": "string" },
+        "polytechnic": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "price": { "type": "number" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["userId", "eventName", "timestamp"]
+    },
+    "AdminStat": {
+      "title": "AdminStat",
+      "description": "Aggregated platform analytics, DAU, and earnings metrics.",
+      "type": "object",
+      "properties": {
+        "dauCount": { "type": "number" },
+        "totalEvents": { "type": "number" },
+        "totalEarnings": { "type": "number" },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "PolyNet user profiles."
+    },
+    "/users/{userId}/devices/{deviceId}": {
+      "schema": "UserDevice",
+      "description": "User multi-device FCM push notification registration documents."
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Social feed posts."
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments under post."
+    },
+    "/posts/{postId}/likes/{likeId}": {
+      "schema": "Like",
+      "description": "Like records under post."
+    },
+    "/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Private and group chat conversations."
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Messages inside a chat thread."
+    },
+    "/groups/{groupId}": {
+      "schema": "Group",
+      "description": "Study and community groups."
+    },
+    "/groups/{groupId}/messages/{messageId}": {
+      "schema": "GroupMessage",
+      "description": "Messages inside study group."
+    },
+    "/notifications/{userId}/userNotifications/{notificationId}": {
+      "schema": "UserNotification",
+      "description": "User specific real-time push notifications."
+    },
+    "/notifications/{notifId}": {
+      "schema": "UserNotification",
+      "description": "Top-level real-time notifications."
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Moderation reports."
+    },
+    "/search_cache/{cacheId}": {
+      "schema": "SearchCache",
+      "description": "Search index cache documents."
+    },
+    "/app_settings/{settingsId}": {
+      "schema": "AppSettings",
+      "description": "Global application configuration."
+    },
+    "/pdf_resources/{resourceId}": {
+      "schema": "PDFResource",
+      "description": "PDF resource downloads."
+    },
+    "/job_alerts/{jobId}": {
+      "schema": "JobAlert",
+      "description": "Job circular postings."
+    },
+    "/routines/{routineId}": {
+      "schema": "RoutineAndSyllabus",
+      "description": "Routines and syllabi downloads."
+    },
+    "/buy_sell_items/{itemId}": {
+      "schema": "BuySellItem",
+      "description": "Book and note marketplace items."
+    },
+    "/stories/{storyId}": {
+      "schema": "Story",
+      "description": "Visual feed stories."
+    },
+    "/reels/{reelId}": {
+      "schema": "Reel",
+      "description": "Short reels videos."
+    },
+    "/polygig_items/{gigId}": {
+      "schema": "PolyGigItem",
+      "description": "Freelance gigs and marketplace items."
+    },
+    "/polygig_orders/{orderId}": {
+      "schema": "PolyGigOrder",
+      "description": "Client and seller gig order transactions."
+    },
+    "/polygig_messages/{msgId}": {
+      "schema": "PolyGigMessage",
+      "description": "Messages inside a gig order chat."
+    },
+    "/polygig_proposals/{propId}": {
+      "schema": "PolyGigProposal",
+      "description": "Proposals submitted for freelance work."
+    },
+    "/gold_requests/{reqId}": {
+      "schema": "GoldRequest",
+      "description": "Student gold member badge verification requests."
+    },
+    "/oauth_apps/{appId}": {
+      "schema": "OAuthApp",
+      "description": "Registered developer applications for OAuth."
+    },
+    "/typing_states/{stateId}": {
+      "schema": "TypingState",
+      "description": "Live typing status indicators."
+    },
+    "/user_profiles/{profileId}": {
+      "schema": "UserProfile",
+      "description": "Extended user profiles and wallets."
+    },
+    "/note_purchases/{purchaseId}": {
+      "schema": "NotePurchase",
+      "description": "PDF note purchases and downloads."
+    },
+    "/withdrawals/{withdrawalId}": {
+      "schema": "Withdrawal",
+      "description": "Teacher and student revenue withdrawals."
+    },
+    "/user_activities/{activityId}": {
+      "schema": "UserActivity",
+      "description": "User behavioral events for PolyLoop and analytics."
+    },
+    "/admin_stats/{statDate}": {
+      "schema": "AdminStat",
+      "description": "Daily aggregated platform statistics."
+    }
+  }
+}
