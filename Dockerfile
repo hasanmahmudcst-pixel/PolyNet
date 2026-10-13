@@ -10,13 +10,15 @@ ENV PORT=3000
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-# আপনার আপলোড করা রেডি dist ফোল্ডার সরাসরি কপি করা (এটি গিটহাবে আছে)
-COPY dist ./dist
+# আপনার আপলোড করা ফাইলগুলো কপি করা
+COPY . .
 
-# যদি public ফোল্ডার বা firebase ফাইল গিটহাবে থাকে তবেই কপি হবে, না থাকলে এরর দেবে না
-COPY public* ./public/
-COPY firebase-applet-config.json* ./
+# dist ফোল্ডার যদি ভেঙে আপলোড হয়ে থাকে, তবে ফাইলটি খুঁজে সঠিক জায়গায় নিয়ে আসার ট্রিক
+RUN if [ ! -d "dist" ] && [ -f "server.cjs" ]; then mkdir dist && mv server.cjs dist/; fi
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
 CMD ["node", "dist/server.cjs"]
